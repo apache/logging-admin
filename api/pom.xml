@@ -5,16 +5,11 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-config-admin-bom</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <artifactId>log4j-config-admin-parent</artifactId>
+    <version>${revision}</version>
+    <relativePath>../parent</relativePath>
   </parent>
 
-  <artifactId>api</artifactId>
-
-  <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+  <artifactId>log4j-config-admin-api</artifactId>
 
 </project>
