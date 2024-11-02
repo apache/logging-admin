@@ -31,7 +31,6 @@ import org.jspecify.annotations.Nullable;
 
 class JulAdmin implements LoggingConfigurationAdmin {
 
-    private static final Object GLOBAL_CONTEXT = new Object();
     private static final Set<String> levels = Stream.of(
                     Level.ALL,
                     Level.FINEST,
@@ -54,7 +53,13 @@ class JulAdmin implements LoggingConfigurationAdmin {
 
     @Override
     public Object getLoggerContext() {
-        return GLOBAL_CONTEXT;
+        // Implementations that support multiple logger contexts can be recognized by having multiple root loggers.
+        ClassLoader oldClassLoader = updateThreadContextClassLoader(classLoader);
+        try {
+            return Logger.getLogger("");
+        } finally {
+            updateThreadContextClassLoader(oldClassLoader);
+        }
     }
 
     @Override
