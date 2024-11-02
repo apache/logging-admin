@@ -45,9 +45,13 @@ import org.jspecify.annotations.Nullable;
  *     private static final Object TOKEN = new Object();
  *
  *     public static void main(String[] args) {
- *       if (args.length == 2 && "--logLevel".equals(args[0])) {
- *         LoggingConfigurationAdmin admin = LoggingConfigurationAdmin.getInstance(TOKEN);
- *         admin.setLoggerLevel("", args[1]);
+ *       int i = 0;
+ *       while (i < args.length) {
+ *         if ("--logLevel".equals(args[i]) && ++i < args.length) {
+ *           LoggingConfigurationAdmin admin = LoggingConfigurationAdmin.getInstance(TOKEN);
+ *           admin.setLoggerLevel("", args[i]);
+ *         }
+ *         i++;
  *       }
  *     }
  *   }

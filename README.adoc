@@ -1,0 +1,23 @@
+This repository contains an initial sketch of an *Apache Logging Admin API*.
+
+The purpose of the API is to allow the programmatic configuration of the logging backend in an implementation independent way.
+
+[source,java]
+----
+import org.apache.logging.admin.LoggingConfigurationAdmin;
+
+public final class Main {
+  private static final Object TOKEN = new Object();
+
+  public static void main(String[] args) {
+    int i = 0;
+    while (i < args.length) {
+      if ("--logLevel".equals(args[i]) && ++i < args.length) {
+        LoggingConfigurationAdmin admin = LoggingConfigurationAdmin.getInstance(TOKEN);
+        admin.setLoggerLevel("", args[i]);
+      }
+      i++;
+    }
+  }
+}
+----
