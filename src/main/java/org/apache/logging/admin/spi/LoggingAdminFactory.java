@@ -1,4 +1,4 @@
-////
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -13,27 +13,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-////
-This repository contains an initial sketch of an *Apache Logging Admin API*.
+ */
+package org.apache.logging.admin.spi;
 
-The purpose of the API is to allow the programmatic configuration of the logging backend in an implementation independent way.
-
-[source,java]
-----
 import org.apache.logging.admin.LoggingAdmin;
 
-public final class Main {
-  private static final Object TOKEN = new Object();
+/**
+ * Factory class for {@link LoggingAdmin} instances.
+ * <p>
+ *   Implementations of this class should be registered using {@link java.util.ServiceLoader}.
+ * </p>
+ */
+public interface LoggingAdminFactory {
 
-  public static void main(String[] args) {
-    int i = 0;
-    while (i < args.length) {
-      if ("--logLevel".equals(args[i]) && ++i < args.length) {
-        LoggingAdmin admin = LoggingAdmin.getInstance(TOKEN);
-        admin.setLoggerLevel("", args[i]);
-      }
-      i++;
-    }
-  }
+    /**
+     * Determines whether the logging system handled by this factory is used.
+     *
+     * @param classLoader The class loader associated with the logger context.
+     */
+    boolean isActive(ClassLoader classLoader);
+
+    /**
+     * Creates a new {@link LoggingAdmin} instance associated with the given classloader.
+     *
+     * @param classLoader The class loader associated with the logger context.
+     * @return A new instance of {@link LoggingAdmin}.
+     */
+    LoggingAdmin createLoggingConfigurationAdmin(ClassLoader classLoader);
 }
-----

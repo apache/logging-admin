@@ -1,4 +1,4 @@
-////
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -13,27 +13,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-////
-This repository contains an initial sketch of an *Apache Logging Admin API*.
+ */
+package org.apache.logging.admin.internal.jul;
 
-The purpose of the API is to allow the programmatic configuration of the logging backend in an implementation independent way.
-
-[source,java]
-----
+import aQute.bnd.annotation.spi.ServiceProvider;
 import org.apache.logging.admin.LoggingAdmin;
+import org.apache.logging.admin.spi.LoggingAdminFactory;
 
-public final class Main {
-  private static final Object TOKEN = new Object();
+@ServiceProvider(LoggingAdminFactory.class)
+public class JulFactory implements LoggingAdminFactory {
 
-  public static void main(String[] args) {
-    int i = 0;
-    while (i < args.length) {
-      if ("--logLevel".equals(args[i]) && ++i < args.length) {
-        LoggingAdmin admin = LoggingAdmin.getInstance(TOKEN);
-        admin.setLoggerLevel("", args[i]);
-      }
-      i++;
+    @Override
+    public boolean isActive(ClassLoader classLoader) {
+        return true;
     }
-  }
+
+    @Override
+    public LoggingAdmin createLoggingConfigurationAdmin(ClassLoader classLoader) {
+        return new JulAdmin(classLoader);
+    }
 }
-----

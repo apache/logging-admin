@@ -16,16 +16,6 @@
   ~ limitations under the License.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" child.project.url.inherit.append.path="false" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-  <!-- ██     ██  █████  ██████  ███    ██ ██ ███    ██  ██████  ██
-       ██     ██ ██   ██ ██   ██ ████   ██ ██ ████   ██ ██       ██
-       ██  █  ██ ███████ ██████  ██ ██  ██ ██ ██ ██  ██ ██   ███ ██
-       ██ ███ ██ ██   ██ ██   ██ ██  ██ ██ ██ ██  ██ ██ ██    ██
-        ███ ███  ██   ██ ██   ██ ██   ████ ██ ██   ████  ██████  ██
-
-       `logging-admin` project modules should use `logging-admin-parent` as their parents, not this POM!
-       This POM constitutes the BOM to be imported by applications using `logging-admin` project modules. -->
-
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -35,11 +25,12 @@
   </parent>
 
   <groupId>org.apache.logging.admin</groupId>
-  <artifactId>logging-admin-bom</artifactId>
+  <artifactId>logging-admin-api</artifactId>
   <version>${revision}</version>
-  <packaging>pom</packaging>
 
-  <url>https://logging.apache.org/log4j/config-admin</url>
+  <name>Apache Logging Admin API</name>
+  <description>Implementation independent API to modify logging implementation</description>
+  <url>https://logging.apache.org/admin</url>
 
   <inceptionYear>2024</inceptionYear>
 
@@ -52,19 +43,6 @@
     </developer>
 
   </developers>
-
-  <modules>
-
-    <!-- the parent POM must come first: -->
-    <module>parent</module>
-
-    <!-- Modules here must have a corresponding entry in `dependencyManagement > dependencies` block below! -->
-    <module>api</module>
-    <module>log4j-core</module>
-    <module>logback</module>
-    <module>jul</module>
-
-  </modules>
 
   <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false" child.scm.url.inherit.append.path="false">
     <connection>scm:git:git@github.com:apache/logging-logging-admin.git</connection>
@@ -98,59 +76,54 @@
 
   </properties>
 
-  <!-- `dependencyManagement` must only contain `log4j-transform` modules and nothing else!
-       Modules here must have a corresponding entry in `modules` block above! -->
-  <dependencyManagement>
-    <dependencies>
+  <dependencies>
 
-      <dependency>
-        <groupId>org.apache.logging.admin</groupId>
-        <artifactId>logging-admin-api</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+    <dependency>
+      <groupId>biz.aQute.bnd</groupId>
+      <artifactId>biz.aQute.bnd.annotation</artifactId>
+      <version>7.0.0</version>
+      <scope>provided</scope>
+    </dependency>
 
-      <dependency>
-        <groupId>org.apache.logging.admin</groupId>
-        <artifactId>logging-admin-jul</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.annotation.bundle</artifactId>
+      <version>2.0.0</version>
+      <scope>provided</scope>
+    </dependency>
 
-      <dependency>
-        <groupId>org.apache.logging.admin</groupId>
-        <artifactId>logging-admin-log4j-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.annotation.versioning</artifactId>
+      <version>1.1.2</version>
+      <scope>provided</scope>
+    </dependency>
 
-      <dependency>
-        <groupId>org.apache.logging.admin</groupId>
-        <artifactId>logging-admin-logback</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
-    </dependencies>
-  </dependencyManagement>
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
+      <version>1.0.0</version>
+    </dependency>
 
-  <build>
-    <plugins>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.24.1</version>
+      <optional>true</optional>
+    </dependency>
 
-      <!-- Enable BOM flattening -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <version>${flatten-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>flatten-bom</id>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-            <phase>process-resources</phase>
-            <inherited>false</inherited>
-          </execution>
-        </executions>
-      </plugin>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.11</version>
+      <optional>true</optional>
+    </dependency>
 
-    </plugins>
-  </build>
-
+  </dependencies>
 </project>
