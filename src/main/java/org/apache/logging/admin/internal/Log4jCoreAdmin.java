@@ -14,44 +14,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.logging.admin.internal.log4j;
+package org.apache.logging.admin.internal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.logging.admin.LoggingAdmin;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.util.NameUtil;
 import org.jspecify.annotations.Nullable;
 
-class CoreAdmin implements LoggingAdmin {
+class Log4jCoreAdmin implements LoggingAdmin {
+
+    private static final ReentrantLock lock = new ReentrantLock();
+    private static final Map<LoggerContext, Object> tokensByLoggerContext = new WeakHashMap<>();
 
     private final LoggerContext loggerContext;
 
-    CoreAdmin(LoggerContext loggerContext) {
+    Log4jCoreAdmin(LoggerContext loggerContext) {
         this.loggerContext = loggerContext;
     }
 
     @Override
-    public Object getLoggerContext() {
-        return loggerContext;
+    public List<String> getSupportedLevels() {
+        return Stream.of(Level.values()).sorted().map(Level::name).collect(Collectors.toList());
     }
 
     @Override
-    public Set<String> getSupportedLevels() {
-        return Stream.of(Level.values()).map(Level::name).collect(Collectors.toSet());
-    }
-
-    @Override
-    public Map<String, Optional<String>> getLoggerLevels() {
-        Map<String, Optional<String>> loggerLevels = new HashMap<>();
+    public Map<String, @Nullable String> getLevels() {
+        Map<String, @Nullable String> loggerLevels = new HashMap<>();
         // Insert the ancestors of all existing loggers
         loggerContext.getLoggers().forEach(logger -> fillLoggerLevels(logger.getName(), loggerLevels));
         // Insert the ancestors of all existing logger configurations
@@ -64,16 +65,17 @@ class CoreAdmin implements LoggingAdmin {
     }
 
     @Override
-    public Optional<String> getLoggerLevel(String loggerName) {
+    public @Nullable String getLevel(String loggerName) {
         Configuration config = loggerContext.getConfiguration();
         return Optional.of(config.getLoggerConfig(loggerName))
                 .filter(lc -> loggerName.equals(lc.getName()))
                 .map(LoggerConfig::getLevel)
-                .map(Level::name);
+                .map(Level::name)
+                .orElse(null);
     }
 
     @Override
-    public void setLoggerLevel(String loggerName, @Nullable String level) {
+    public void setLevel(String loggerName, @Nullable String level) {
         boolean changed;
         Configuration config = loggerContext.getConfiguration();
         Level levelObj = level != null ? Level.valueOf(level) : null;
@@ -91,10 +93,36 @@ class CoreAdmin implements LoggingAdmin {
         }
     }
 
-    private void fillLoggerLevels(String loggerName, Map<String, Optional<String>> loggerLevels) {
+    private void fillLoggerLevels(String loggerName, Map<String, @Nullable String> loggerLevels) {
         String currentName = loggerName;
-        while (currentName != null && loggerLevels.computeIfAbsent(currentName, this::getLoggerLevel) == null) {
+        while (currentName != null && loggerLevels.putIfAbsent(currentName, getLevel(currentName)) == null) {
             currentName = NameUtil.getSubName(currentName);
+        }
+    }
+
+    static boolean isActive() {
+        org.apache.logging.log4j.spi.LoggerContext loggerContext = PrivateLogManager.getContext();
+        return loggerContext instanceof org.apache.logging.log4j.core.LoggerContext;
+    }
+
+    static LoggingAdmin newInstance(Object token) {
+        lock.lock();
+        try {
+            LoggerContext loggerContext = (LoggerContext) PrivateLogManager.getContext();
+            if (tokensByLoggerContext.computeIfAbsent(loggerContext, k -> token) != token) {
+                throw new SecurityException("The security token does not match: " + token);
+            }
+            return new Log4jCoreAdmin(loggerContext);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static final class PrivateLogManager extends LogManager {
+        private PrivateLogManager() {}
+
+        public static org.apache.logging.log4j.spi.LoggerContext getContext() {
+            return LogManager.getContext(LoggingAdmin.class.getName(), false);
         }
     }
 }

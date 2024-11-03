@@ -14,7 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@Export
+@Version("0.1.0")
 @NullMarked
 package org.apache.logging.admin;
 
 import org.jspecify.annotations.NullMarked;
+import org.osgi.annotation.bundle.Export;
+import org.osgi.annotation.versioning.Version;

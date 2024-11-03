@@ -27,17 +27,29 @@ import org.apache.logging.admin.LoggingAdmin;
 public interface LoggingAdminFactory {
 
     /**
-     * Determines whether the logging system handled by this factory is used.
-     *
-     * @param classLoader The class loader associated with the logger context.
+     * Provides the order in which this factory should be evaluated.
+     * <p>
+     *   Lower numerical values are evaluated first.
+     * </p>
      */
-    boolean isActive(ClassLoader classLoader);
+    default int getPriority() {
+        return 0;
+    }
+
+    /**
+     * Determines whether the logging system handled by this factory is used.
+     */
+    boolean isActive();
 
     /**
      * Creates a new {@link LoggingAdmin} instance associated with the given classloader.
-     *
-     * @param classLoader The class loader associated with the logger context.
-     * @return A new instance of {@link LoggingAdmin}.
+     * <p>
+     *   The {@code token} parameter sets a security token for the appropriate logger context.
+     *   All future invocations of this method will need to use the same token.
+     *   Tokens are compared using object equality.
+     * </p>
+     * @param token Any Java object.
+     * @return An instance of {@link LoggingAdmin}.
      */
-    LoggingAdmin createLoggingConfigurationAdmin(ClassLoader classLoader);
+    LoggingAdmin getLoggingAdmin(Object token) throws SecurityException;
 }

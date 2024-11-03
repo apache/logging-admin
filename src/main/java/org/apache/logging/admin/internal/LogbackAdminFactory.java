@@ -14,22 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.logging.admin.internal.jul;
+package org.apache.logging.admin.internal;
 
 import aQute.bnd.annotation.spi.ServiceProvider;
 import org.apache.logging.admin.LoggingAdmin;
 import org.apache.logging.admin.spi.LoggingAdminFactory;
 
-@ServiceProvider(LoggingAdminFactory.class)
-public class JulFactory implements LoggingAdminFactory {
-
+@ServiceProvider(value = LoggingAdminFactory.class)
+public class LogbackAdminFactory implements LoggingAdminFactory {
     @Override
-    public boolean isActive(ClassLoader classLoader) {
-        return true;
+    public int getPriority() {
+        return 1024;
     }
 
     @Override
-    public LoggingAdmin createLoggingConfigurationAdmin(ClassLoader classLoader) {
-        return new JulAdmin(classLoader);
+    public boolean isActive() {
+        try {
+            return LogbackAdmin.isActive();
+        } catch (LinkageError e) {
+            return false;
+        }
+    }
+
+    @Override
+    public LoggingAdmin getLoggingAdmin(Object token) {
+        return LogbackAdmin.newInstance(token);
     }
 }

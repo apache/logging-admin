@@ -16,11 +16,11 @@
  */
 package org.apache.logging.admin;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import org.apache.logging.admin.internal.FactoryHolder;
+import org.apache.logging.admin.internal.FactoryUtil;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -48,7 +48,7 @@ import org.jspecify.annotations.Nullable;
  *       while (i < args.length) {
  *         if ("--logLevel".equals(args[i]) && ++i < args.length) {
  *           LoggingAdmin admin = LoggingAdmin.getInstance(TOKEN);
- *           admin.setLoggerLevel("", args[i]);
+ *           admin.setLevel("", args[i]);
  *         }
  *         i++;
  *       }
@@ -57,26 +57,23 @@ import org.jspecify.annotations.Nullable;
  * </pre>
  */
 public interface LoggingAdmin {
+    /**
+     * Implementation independent name for the root logger.
+     */
+    String ROOT_LOGGER_NAME = "";
 
     /**
-     * The logger context that this interface will be configuring.
-     *
-     * @return A logger context.
+     * The names of the available log levels in decreasing severity order.
      */
-    Object getLoggerContext();
-
-    /**
-     * The names of the available log levels.
-     */
-    Set<String> getSupportedLevels();
+    List<String> getSupportedLevels();
 
     /**
      * A map associating logger names with the configured log levels.
      * <p>
-     *   Loggers that inherit their configuration from the parent logger will be associated with {@link Optional#empty()}.
+     *   Loggers that inherit their configuration from the parent logger will be associated with {@code null}.
      * </p>
      */
-    Map<String, Optional<String>> getLoggerLevels();
+    Map<String, @Nullable String> getLevels();
 
     /**
      * The configured log level for the given logger.
@@ -85,7 +82,8 @@ public interface LoggingAdmin {
      * </p>
      * @param loggerName The name of the logger.
      */
-    Optional<String> getLoggerLevel(String loggerName);
+    @Nullable
+    String getLevel(String loggerName);
 
     /**
      * Sets the level for a logger.
@@ -93,41 +91,21 @@ public interface LoggingAdmin {
      * @param loggerName The name of the logger.
      * @param level The level to use or {@code null} to inherit the level of the parent logger.
      */
-    void setLoggerLevel(String loggerName, @Nullable String level);
+    void setLevel(String loggerName, @Nullable String level);
 
     /**
-     * Retrieves the logging configuration admin for the given classloader.
+     * Retrieves the logging configuration admin appropriate for the caller
      * <p>
-     *   If {@code token} is not null, it also sets a security token for the appropriate logger context.
+     *   The {@code token} parameter sets a security token for the appropriate logger context.
      *   All future invocations of this method will need to use the same token.
      *   Tokens are compared using object equality.
      * </p>
-     * @param token The security token.
-     * @param classLoader A class loader.
+     * @param token Any Java object.
      * @return A logging configuration admin.
-     * @throws IllegalStateException If no implementation of the Apache Logging Admin API is present on the classpath.
-     * @throws SecurityException If a security token is set for the associated logger context and the provided token
-     * does not match.
-     */
-    static LoggingAdmin getInstance(Object token, ClassLoader classLoader) {
-        return FactoryHolder.getLoggingConfigurationAdmin(
-                Objects.requireNonNull(token), Objects.requireNonNull(classLoader));
-    }
-
-    /**
-     * Retrieves the logging configuration admin for the classloader that loaded this class.
-     * <p>
-     *   If {@code token} is not null, it also sets a security token for the appropriate logger context.
-     *   All future invocations of this method will need to use the same token.
-     *   Tokens are compared using object equality.
-     * </p>
-     * @return A logging configuration admin.
-     * @throws IllegalStateException If no implementation of the Apache Logging Admin API is present on the classpath.
      * @throws SecurityException If a security token is set for the associated logger context and the provided token
      * does not match.
      */
     static LoggingAdmin getInstance(Object token) {
-        return FactoryHolder.getLoggingConfigurationAdmin(
-                Objects.requireNonNull(token), LoggingAdmin.class.getClassLoader());
+        return FactoryUtil.getLoggingAdmin(Objects.requireNonNull(token));
     }
 }

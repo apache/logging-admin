@@ -30,7 +30,7 @@ public final class Main {
     while (i < args.length) {
       if ("--logLevel".equals(args[i]) && ++i < args.length) {
         LoggingAdmin admin = LoggingAdmin.getInstance(TOKEN);
-        admin.setLoggerLevel("", args[i]);
+        admin.setLevel("", args[i]);
       }
       i++;
     }

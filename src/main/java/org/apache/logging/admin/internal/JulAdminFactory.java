@@ -14,26 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.logging.admin.internal.log4j;
+package org.apache.logging.admin.internal;
 
 import aQute.bnd.annotation.spi.ServiceProvider;
 import org.apache.logging.admin.LoggingAdmin;
 import org.apache.logging.admin.spi.LoggingAdminFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.spi.LoggerContext;
 
-@ServiceProvider(value = LoggingAdminFactory.class)
-public class CoreFactory implements LoggingAdminFactory {
-
+/**
+ * Logging admin factory for `java.util.logging`.
+ */
+@ServiceProvider(LoggingAdminFactory.class)
+public class JulAdminFactory implements LoggingAdminFactory {
     @Override
-    public boolean isActive(ClassLoader classLoader) {
-        LoggerContext loggerContext = LogManager.getContext(classLoader, false);
-        return loggerContext instanceof org.apache.logging.log4j.core.LoggerContext;
+    public int getPriority() {
+        return Integer.MAX_VALUE;
     }
 
     @Override
-    public LoggingAdmin createLoggingConfigurationAdmin(ClassLoader classLoader) {
-        LoggerContext loggerContext = LogManager.getContext(classLoader, false);
-        return new CoreAdmin((org.apache.logging.log4j.core.LoggerContext) loggerContext);
+    public boolean isActive() {
+        try {
+            return JulAdmin.isActive();
+        } catch (LinkageError e) {
+            return false;
+        }
+    }
+
+    @Override
+    public LoggingAdmin getLoggingAdmin(Object token) {
+        return JulAdmin.newInstance(token);
     }
 }

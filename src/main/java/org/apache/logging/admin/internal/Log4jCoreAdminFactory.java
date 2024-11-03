@@ -14,21 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.logging.admin.internal.logback;
+package org.apache.logging.admin.internal;
 
-import ch.qos.logback.classic.LoggerContext;
+import aQute.bnd.annotation.spi.ServiceProvider;
 import org.apache.logging.admin.LoggingAdmin;
 import org.apache.logging.admin.spi.LoggingAdminFactory;
-import org.slf4j.LoggerFactory;
 
-public class LogbackAdminFactory implements LoggingAdminFactory {
+@ServiceProvider(value = LoggingAdminFactory.class)
+public class Log4jCoreAdminFactory implements LoggingAdminFactory {
     @Override
-    public boolean isActive(ClassLoader classLoader) {
-        return LoggerFactory.getILoggerFactory() instanceof ch.qos.logback.classic.LoggerContext;
+    public int getPriority() {
+        return 512;
     }
 
     @Override
-    public LoggingAdmin createLoggingConfigurationAdmin(ClassLoader classLoader) {
-        return new LogbackAdmin((LoggerContext) LoggerFactory.getILoggerFactory());
+    public boolean isActive() {
+        try {
+            return Log4jCoreAdmin.isActive();
+        } catch (LinkageError e) {
+            return false;
+        }
+    }
+
+    @Override
+    public LoggingAdmin getLoggingAdmin(Object token) {
+        return Log4jCoreAdmin.newInstance(token);
     }
 }
