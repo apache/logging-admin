@@ -15,6 +15,7 @@
  * limitations under the License.
 ////
 This repository contains an initial sketch of an *Apache Logging Admin API*.
+See the ["New API for log level manipulation" thread](https://lists.apache.org/thread/ktdlo5br6jc39xo33vdsfsj2s200mm93) for more details.
 
 The purpose of the API is to allow the programmatic configuration of the logging backend in an implementation independent way.
 
